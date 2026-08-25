@@ -2,6 +2,7 @@ import json
 
 import pytest
 
+from cpfc_demo.domain.models import FaultUpdate
 from cpfc_demo.storage.database import Database
 
 
@@ -105,3 +106,25 @@ async def test_fresh_run_preserves_summary_and_marks_incomplete_as_stranded(data
     row = await database._fetchone("SELECT summary_json FROM demo_runs WHERE run_number=1")
     assert row is not None
     assert json.loads(row["summary_json"])["failed"] == 1
+
+
+@pytest.mark.asyncio
+async def test_multiple_fault_conditions_are_saved_together(database: Database) -> None:
+    run = await database.active_run()
+    await database.update_faults(
+        FaultUpdate(
+            reservation_failure_pct=15,
+            payment_failure_pct=25,
+            ticket_failure_pct=35,
+            card_decline_pct=10,
+            latency_ms=640,
+        )
+    )
+
+    faults = await database.faults(run["id"])
+
+    assert faults["reservation_failure_pct"] == 15
+    assert faults["payment_failure_pct"] == 25
+    assert faults["ticket_failure_pct"] == 35
+    assert faults["card_decline_pct"] == 10
+    assert faults["latency_ms"] == 640

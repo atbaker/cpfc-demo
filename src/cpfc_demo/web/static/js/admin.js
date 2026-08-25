@@ -3,6 +3,7 @@ let revision = null;
 let filter = "all";
 let failures = 0;
 let previousRisk = 0;
+const dirtyFaultControls = new Set();
 
 const board = document.querySelector("#board");
 const dialog = document.querySelector("#order-dialog");
@@ -127,14 +128,43 @@ function renderControls(data) {
   setRange("reservation-failure", faults.reservation_failure_pct, "%");
   setRange("payment-failure", faults.payment_failure_pct, "%");
   setRange("ticket-failure", faults.ticket_failure_pct, "%");
+  setRange("card-decline", faults.card_decline_pct, "%");
   setRange("latency", faults.latency_ms, "ms");
+  renderFaultDraftState();
 }
 
 function setRange(id, value, suffix) {
   const input = document.querySelector(`#${id}`);
-  if (document.activeElement !== input) input.value = value;
-  const outputId = id === "latency" ? "latency-output" : id.replace("failure", "output");
+  if (!dirtyFaultControls.has(id)) input.value = value;
+  const outputId = `${id}-output`;
   document.querySelector(`#${outputId}`).value = `${input.value}${suffix}`;
+}
+
+function faultValuesFromInputs() {
+  return {
+    reservation_failure_pct: Number(document.querySelector("#reservation-failure").value),
+    payment_failure_pct: Number(document.querySelector("#payment-failure").value),
+    ticket_failure_pct: Number(document.querySelector("#ticket-failure").value),
+    card_decline_pct: Number(document.querySelector("#card-decline").value),
+    latency_ms: Number(document.querySelector("#latency").value),
+  };
+}
+
+function renderFaultDraftState() {
+  const values = faultValuesFromInputs();
+  const state = document.querySelector("#fault-draft-state");
+  const apply = document.querySelector("#apply-faults");
+  const dirtyCount = dirtyFaultControls.size;
+  state.textContent = `${dirtyCount ? "Unsaved combination" : "Active combination"} · Reservations ${values.reservation_failure_pct}% · Payments ${values.payment_failure_pct}% · Tickets ${values.ticket_failure_pct}% · Declines ${values.card_decline_pct}% · ${values.latency_ms}ms`;
+  state.classList.toggle("dirty", dirtyCount > 0);
+  apply.classList.toggle("pending", dirtyCount > 0);
+  apply.textContent = dirtyCount ? `Apply ${dirtyCount} combined change${dirtyCount === 1 ? "" : "s"}` : "Advanced settings active";
+  apply.disabled = dirtyCount === 0;
+}
+
+function clearFaultDraft() {
+  dirtyFaultControls.clear();
+  renderFaultDraftState();
 }
 
 async function poll() {
@@ -171,13 +201,18 @@ document.querySelectorAll(".filter").forEach((button) => button.addEventListener
   if (snapshot) renderBoard(snapshot);
 }));
 document.querySelector("#order-search").addEventListener("input", () => { if (snapshot) renderBoard(snapshot); });
-document.querySelectorAll("[data-preset]").forEach((button) => button.addEventListener("click", async () => { await api(`/api/admin/presets/${button.dataset.preset}`, { method: "POST" }); revision = null; poll(); }));
+document.querySelectorAll("[data-preset]").forEach((button) => button.addEventListener("click", async () => { await api(`/api/admin/presets/${button.dataset.preset}`, { method: "POST" }); clearFaultDraft(); revision = null; poll(); }));
 document.querySelector("#generator-start").addEventListener("click", async () => { await api("/api/admin/generator/start", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ rate_per_second: Number(document.querySelector("#generator-rate").value), target_count: Number(document.querySelector("#generator-target").value) }) }); revision = null; poll(); });
 document.querySelector("#generator-pause").addEventListener("click", async () => { await api("/api/admin/generator/pause", { method: "POST" }); revision = null; poll(); });
 document.querySelector("#arm-crash").addEventListener("click", async () => { await api("/api/admin/crash-token", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ target_source: "audience" }) }); revision = null; poll(); });
-document.querySelector("#fresh-run").addEventListener("click", async () => { if (!confirm("Start a fresh run? Active Temporal Workflows will be terminated; history is preserved.")) return; await api("/api/admin/runs/fresh", { method: "POST" }); revision = null; poll(); });
-document.querySelector("#apply-faults").addEventListener("click", async () => { await api("/api/admin/faults", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reservation_failure_pct: Number(document.querySelector("#reservation-failure").value), payment_failure_pct: Number(document.querySelector("#payment-failure").value), ticket_failure_pct: Number(document.querySelector("#ticket-failure").value), card_decline_pct: 0, latency_ms: Number(document.querySelector("#latency").value) }) }); revision = null; poll(); });
-document.querySelectorAll(".slider-grid input").forEach((input) => input.addEventListener("input", () => { const suffix = input.id === "latency" ? "ms" : "%"; const outputId = input.id === "latency" ? "latency-output" : input.id.replace("failure", "output"); document.querySelector(`#${outputId}`).value = `${input.value}${suffix}`; }));
+document.querySelector("#fresh-run").addEventListener("click", async () => { if (!confirm("Start a fresh run? Active Temporal Workflows will be terminated; history is preserved.")) return; await api("/api/admin/runs/fresh", { method: "POST" }); clearFaultDraft(); revision = null; poll(); });
+document.querySelector("#apply-faults").addEventListener("click", async () => { await api("/api/admin/faults", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(faultValuesFromInputs()) }); clearFaultDraft(); revision = null; poll(); });
+document.querySelectorAll(".slider-grid input").forEach((input) => input.addEventListener("input", () => {
+  dirtyFaultControls.add(input.id);
+  const suffix = input.id === "latency" ? "ms" : "%";
+  document.querySelector(`#${input.id}-output`).value = `${input.value}${suffix}`;
+  renderFaultDraftState();
+}));
 document.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
 
