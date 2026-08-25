@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cup Night demo ticket</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+  </head>
+  <body class="participant-body">
+    <div class="sash sash-left" aria-hidden="true"></div>
+    <main class="participant-shell">
+      <header class="participant-brand">
+        <img src="/static/assets/cpfc-crest.svg" alt="Crystal Palace FC" class="participant-crest">
+        <div class="partner-cross">×</div>
+        <img src="/static/assets/temporal-logo.svg" alt="Temporal" class="participant-temporal">
+      </header>
+      <p class="eyebrow">Internal partner demo · fictional fixture</p>
+      <section class="fixture-card">
+        <p class="competition">Cup Night · Selhurst Park</p>
+        <h1>Palace <span>v</span> Northbridge United</h1>
+        <p class="fixture-meta">One synthetic ticket · £55.00 demo payment</p>
+      </section>
+      <form id="join-form" class="checkout-form">
+        <input type="hidden" id="join-code" value="{{ join_code }}">
+        <label for="supporter-alias">Your name or nickname <span>optional</span></label>
+        <input id="supporter-alias" maxlength="40" autocomplete="nickname" placeholder="Shown on the room dashboard">
+        <p class="privacy-note">Anything entered here will be visible to the room. Leave blank for an anonymous supporter number.</p>
+        <label for="section">Choose a fictional stand</label>
+        <select id="section">
+          <option>Holmesdale Road</option>
+          <option>Arthur Wait</option>
+          <option>Main Stand</option>
+          <option>Whitehorse Lane</option>
+        </select>
+        <div class="demo-payment">
+          <div><span>Demo payment</span><strong>•••• 4242</strong></div>
+          <strong>£55.00</strong>
+        </div>
+        <button type="submit" class="primary-button">Get my demo ticket</button>
+        <p id="form-error" class="form-error" role="alert"></p>
+      </form>
+      <footer>PARTNER DEMO · SYNTHETIC ORDER · NO REAL TICKET OR PAYMENT</footer>
+    </main>
+    <script src="/static/js/join.js" defer></script>
+  </body>
+</html>

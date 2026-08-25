@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cup Night Ticket Operations</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+  </head>
+  <body class="admin-body">
+    <header class="admin-header">
+      <div class="header-brand">
+        <img src="/static/assets/cpfc-crest.svg" alt="Crystal Palace FC">
+        <div><p>Crystal Palace × Temporal</p><h1>Cup Night Ticket Operations</h1></div>
+      </div>
+      <div class="header-run"><span id="engine-badge">NAÏVE</span><strong id="run-number">Run 1</strong></div>
+      <div class="header-disclaimer">INTERNAL PARTNER DEMO · SYNTHETIC ORDERS</div>
+    </header>
+    <main class="admin-main">
+      <section class="kpi-grid" id="kpi-grid">
+        <article class="kpi kpi-created"><span>Orders created</span><strong id="metric-created">0</strong></article>
+        <article class="kpi kpi-flight"><span>In flight</span><strong id="metric-flight">0</strong></article>
+        <article class="kpi kpi-complete"><span>Completed</span><strong id="metric-completed">0</strong></article>
+        <article class="kpi kpi-failed"><span>Failed / stranded</span><strong id="metric-failed">0</strong></article>
+        <article class="kpi kpi-risk"><span>Charged · no ticket</span><strong id="metric-risk">0</strong></article>
+        <article class="kpi kpi-dedupe"><span>Duplicate charges prevented</span><strong id="metric-dedupe">0</strong></article>
+      </section>
+      <section class="previous-run" id="previous-run" hidden></section>
+      <div class="workspace">
+        <section class="board-panel">
+          <div class="board-toolbar">
+            <div class="filter-group" role="group" aria-label="Order source filter">
+              <button class="filter active" data-filter="all">All</button>
+              <button class="filter" data-filter="audience">Audience</button>
+              <button class="filter" data-filter="synthetic">Synthetic</button>
+            </div>
+            <div class="legend"><span class="legend-dot processing"></span>Processing <span class="legend-dot retrying"></span>Retrying <span class="legend-dot stranded"></span>Stranded <span class="legend-dot complete"></span>Complete</div>
+            <label class="search-label">Find <input id="order-search" placeholder="CP-01-0001"></label>
+            <span id="density-label" class="density-label">Cards</span>
+          </div>
+          <div class="board" id="board" aria-live="polite">
+            <section class="board-column" data-column="requested"><h2>Requested <span>0</span></h2><div class="card-stack"></div></section>
+            <section class="board-column" data-column="reserved"><h2>Reserved <span>0</span></h2><div class="card-stack"></div></section>
+            <section class="board-column" data-column="payment"><h2>Payment charged <span>0</span></h2><div class="card-stack"></div></section>
+            <section class="board-column" data-column="ticket"><h2>Ticket issued <span>0</span></h2><div class="card-stack"></div></section>
+            <section class="board-column" data-column="complete"><h2>Complete <span>0</span></h2><div class="card-stack"></div></section>
+            <section class="board-column" data-column="failed"><h2>Failed <span>0</span></h2><div class="card-stack"></div></section>
+          </div>
+        </section>
+        <aside class="control-panel">
+          <div class="control-title"><div><p>Presenter controls</p><h2>Matchday conditions</h2></div><span id="connection-state">Live</span></div>
+          <section class="worker-health"><h3>System health</h3><div id="worker-health"></div></section>
+          <section><h3>Scenario presets</h3><div class="preset-grid"><button data-preset="healthy">Healthy</button><button data-preset="ticket-flaky">Ticket API flaky</button><button data-preset="payment-slow">Payment slow</button><button data-preset="rush">Rush conditions</button></div></section>
+          <section><h3>Synthetic traffic</h3><div class="control-row"><label>Orders/sec <input id="generator-rate" type="number" min="0.5" max="30" step="0.5" value="25"></label><label>Total <input id="generator-target" type="number" min="1" max="1000" value="500"></label></div><div class="button-row"><button class="action blue" id="generator-start">Start rush</button><button class="action" id="generator-pause">Pause</button></div><p id="generator-state" class="control-hint">Paused</p></section>
+          <section class="crash-control"><h3>Headline failure</h3><button class="action red wide" id="arm-crash">Arm crash after next audience payment</button><p id="crash-state" class="control-hint">Not armed</p></section>
+          <details><summary>Advanced fault controls</summary><div class="slider-grid"><label>Reservation failure <output id="reservation-output">0%</output><input id="reservation-failure" type="range" min="0" max="100" value="0"></label><label>Payment failure <output id="payment-output">0%</output><input id="payment-failure" type="range" min="0" max="100" value="0"></label><label>Ticket failure <output id="ticket-output">0%</output><input id="ticket-failure" type="range" min="0" max="100" value="0"></label><label>Latency <output id="latency-output">180ms</output><input id="latency" type="range" min="0" max="2000" step="20" value="180"></label></div><button class="action wide" id="apply-faults">Apply advanced settings</button></details>
+          <section class="join-box"><div><h3>Audience join link</h3><p id="join-url"></p></div><img id="join-qr" src="/api/admin/qr" alt="QR code to join demo"></section>
+          <button class="fresh-run" id="fresh-run">Start fresh run</button>
+          <a class="temporal-link" href="{{ temporal_ui_url }}" target="_blank" rel="noreferrer">Open Temporal Web UI ↗</a>
+        </aside>
+      </div>
+    </main>
+    <dialog id="order-dialog"><button class="dialog-close" aria-label="Close">×</button><div id="dialog-content"></div></dialog>
+    <script src="/static/js/admin.js" defer></script>
+  </body>
+</html>

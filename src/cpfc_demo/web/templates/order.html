@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Your Cup Night demo order</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+  </head>
+  <body class="participant-body">
+    <div class="sash sash-left" aria-hidden="true"></div>
+    <main class="participant-shell order-shell" data-order-id="{{ order_id }}">
+      <header class="participant-brand">
+        <img src="/static/assets/cpfc-crest.svg" alt="Crystal Palace FC" class="participant-crest">
+        <div class="partner-cross">×</div>
+        <img src="/static/assets/temporal-logo.svg" alt="Temporal" class="participant-temporal">
+      </header>
+      <p class="eyebrow">Cup Night demo order</p>
+      <h1 id="order-reference">{{ order_id }}</h1>
+      <p id="order-message" class="order-message" aria-live="polite">Your order has entered the queue…</p>
+      <ol class="progress-steps" id="progress-steps">
+        <li data-step="reservation"><span>1</span><div><strong>Reserve ticket</strong><small>Waiting</small></div></li>
+        <li data-step="payment"><span>2</span><div><strong>Take demo payment</strong><small>Waiting</small></div></li>
+        <li data-step="ticket"><span>3</span><div><strong>Issue digital ticket</strong><small>Waiting</small></div></li>
+        <li data-step="loyalty"><span>4</span><div><strong>Award loyalty points</strong><small>Waiting</small></div></li>
+        <li data-step="confirmation"><span>5</span><div><strong>Send confirmation</strong><small>Waiting</small></div></li>
+      </ol>
+      <section id="demo-ticket" class="demo-ticket" hidden>
+        <div class="ticket-watermark">DEMO</div>
+        <p>CUP NIGHT · SELHURST PARK</p>
+        <h2>Palace v Northbridge United</h2>
+        <div class="ticket-grid"><span>Supporter<strong id="ticket-name"></strong></span><span>Seat<strong id="ticket-seat"></strong></span></div>
+        <div class="fake-barcode" aria-hidden="true"></div>
+        <strong>NOT A VALID TICKET</strong>
+      </section>
+      <footer>PARTNER DEMO · SYNTHETIC ORDER · NO REAL TICKET OR PAYMENT</footer>
+    </main>
+    <script src="/static/js/order.js" defer></script>
+  </body>
+</html>

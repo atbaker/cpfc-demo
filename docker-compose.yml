@@ -1,0 +1,112 @@
+name: cpfc-temporal-demo
+
+x-python-environment: &python-environment
+  CPFC_ADMIN_TOKEN: palace-admin-2026
+  CPFC_INTERNAL_TOKEN: palace-internal-2026
+  CPFC_DATA_PATH: /data/cpfc-demo.sqlite3
+  CPFC_PUBLIC_BASE_URL: http://localhost:8000
+  CPFC_SERVICE_BASE_URL: http://web:8000
+  CPFC_NAIVE_WORKER_URL: http://naive-worker:8001
+  CPFC_TEMPORAL_ADDRESS: temporal:7233
+  CPFC_TEMPORAL_NAMESPACE: default
+  CPFC_TEMPORAL_TASK_QUEUE: cpfc-ticket-orders
+  CPFC_TEMPORAL_UI_URL: http://localhost:8233
+
+services:
+  temporal:
+    # Official Temporal CLI image, pinned to Server 1.30.2 / UI 2.45.3.
+    image: temporalio/temporal@sha256:896dc523ec52eaa18873c45ddf9df83ecb33d7e12dd19481bf032565657c6028
+    command:
+      - server
+      - start-dev
+      - --ip
+      - 0.0.0.0
+      - --db-filename
+      - /home/temporal/temporal.db
+      - --search-attribute
+      - DemoSessionId=Keyword
+    ports:
+      - "7233:7233"
+      - "8233:8233"
+    volumes:
+      - temporal-data:/home/temporal
+    healthcheck:
+      test: ["CMD", "temporal", "operator", "cluster", "health", "--address", "localhost:7233"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+      start_period: 5s
+
+  web:
+    build: .
+    command:
+      - uvicorn
+      - cpfc_demo.web.app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --reload
+    environment: *python-environment
+    ports:
+      - "8000:8000"
+    volumes:
+      - app-data:/data
+      - ./src:/app/src:ro
+    depends_on:
+      temporal:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=2)"
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+  naive-worker:
+    build: .
+    command:
+      - uvicorn
+      - cpfc_demo.workers.naive_worker:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8001"
+    environment: *python-environment
+    volumes:
+      - ./src:/app/src:ro
+    depends_on:
+      web:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=2)"
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 3s
+
+  temporal-worker:
+    build: .
+    command: ["python", "-m", "cpfc_demo.workers.temporal_worker"]
+    environment: *python-environment
+    volumes:
+      - ./src:/app/src:ro
+    depends_on:
+      web:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  app-data:
+  temporal-data:
