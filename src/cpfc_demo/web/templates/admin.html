@@ -53,13 +53,23 @@
           <section><h3>Synthetic traffic</h3><div class="control-row"><label>Orders/sec <input id="generator-rate" type="number" min="0.5" max="30" step="0.5" value="25"></label><label>Total <input id="generator-target" type="number" min="1" max="1000" value="500"></label></div><div class="button-row"><button class="action blue" id="generator-start">Start rush</button><button class="action" id="generator-pause">Pause</button></div><p id="generator-state" class="control-hint">Paused</p></section>
           <section class="crash-control"><h3>Headline failure</h3><button class="action red wide" id="arm-crash">Arm crash after next audience payment</button><p id="crash-state" class="control-hint">Not armed</p></section>
           <details><summary>Advanced fault controls</summary><p class="control-hint">Build one combined environment, then apply every selected condition together.</p><div class="slider-grid"><label>Reservation failure <output id="reservation-failure-output">0%</output><input id="reservation-failure" type="range" min="0" max="100" value="0"></label><label>Payment failure <output id="payment-failure-output">0%</output><input id="payment-failure" type="range" min="0" max="100" value="0"></label><label>Ticket failure <output id="ticket-failure-output">0%</output><input id="ticket-failure" type="range" min="0" max="100" value="0"></label><label>Card declines <output id="card-decline-output">0%</output><input id="card-decline" type="range" min="0" max="100" value="0"></label><label>Latency <output id="latency-output">180ms</output><input id="latency" type="range" min="0" max="2000" step="20" value="180"></label></div><p id="fault-draft-state" class="fault-draft-state">Active combination</p><button class="action wide" id="apply-faults" disabled>Advanced settings active</button></details>
-          <section class="join-box"><div><h3>Audience join link</h3><p id="join-url"></p></div><img id="join-qr" src="/api/admin/qr" alt="QR code to join demo"></section>
+          <section class="join-box"><div><h3>Audience join link</h3><p id="join-url"></p></div><button class="qr-trigger" id="join-qr-trigger" type="button" aria-label="Enlarge audience QR code" title="Enlarge QR code"><img id="join-qr" src="/api/admin/qr" alt="QR code to join demo"><span aria-hidden="true">Enlarge</span></button></section>
           <button class="fresh-run" id="fresh-run">Start fresh run</button>
           <a class="temporal-link" href="{{ temporal_ui_url }}" target="_blank" rel="noreferrer">Open Temporal Web UI ↗</a>
         </aside>
       </div>
     </main>
-    <dialog id="order-dialog"><button class="dialog-close" aria-label="Close">×</button><div id="dialog-content"></div></dialog>
+    <dialog id="order-dialog"><button class="dialog-close" aria-label="Close order details">×</button><div id="dialog-content"></div></dialog>
+    <dialog id="qr-dialog" class="qr-dialog" aria-labelledby="qr-dialog-title">
+      <button class="dialog-close" aria-label="Close enlarged QR code">×</button>
+      <div class="qr-dialog-content">
+        <p class="eyebrow">Audience participation</p>
+        <h2 id="qr-dialog-title">Scan to join the Cup Night demo</h2>
+        <img id="join-qr-large" src="/api/admin/qr" alt="Large QR code to join demo">
+        <p id="join-url-large" class="qr-dialog-url"></p>
+        <p class="qr-dialog-hint">Point your phone camera at the code</p>
+      </div>
+    </dialog>
     <script src="/static/js/admin.js" defer></script>
   </body>
 </html>

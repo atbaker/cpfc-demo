@@ -7,6 +7,7 @@ const dirtyFaultControls = new Set();
 
 const board = document.querySelector("#board");
 const dialog = document.querySelector("#order-dialog");
+const qrDialog = document.querySelector("#qr-dialog");
 
 async function api(path, options = {}) {
   const response = await fetch(path, options);
@@ -123,7 +124,10 @@ function renderControls(data) {
       ? `Consumed by ${crash.consumed_order_id}`
       : "Not armed";
   document.querySelector("#join-url").textContent = data.join_url;
-  document.querySelector("#join-qr").src = `/api/admin/qr?revision=${data.revision}`;
+  document.querySelector("#join-url-large").textContent = data.join_url;
+  const qrSrc = `/api/admin/qr?key=${encodeURIComponent(`${data.run.join_code}:${data.public_base_url}`)}`;
+  document.querySelector("#join-qr").src = qrSrc;
+  document.querySelector("#join-qr-large").src = qrSrc;
   const faults = data.faults;
   setRange("reservation-failure", faults.reservation_failure_pct, "%");
   setRange("payment-failure", faults.payment_failure_pct, "%");
@@ -213,8 +217,16 @@ document.querySelectorAll(".slider-grid input").forEach((input) => input.addEven
   document.querySelector(`#${input.id}-output`).value = `${input.value}${suffix}`;
   renderFaultDraftState();
 }));
-document.querySelector(".dialog-close").addEventListener("click", () => dialog.close());
+document.querySelector("#join-qr-trigger").addEventListener("click", () => qrDialog.showModal());
+document.querySelector("#order-dialog .dialog-close").addEventListener("click", () => dialog.close());
+document.querySelector("#qr-dialog .dialog-close").addEventListener("click", () => qrDialog.close());
 dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); });
+qrDialog.addEventListener("click", (event) => {
+  if (event.target !== qrDialog) return;
+  const bounds = qrDialog.getBoundingClientRect();
+  const outside = event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom;
+  if (outside) qrDialog.close();
+});
 
 poll();
 setInterval(poll, 500);
